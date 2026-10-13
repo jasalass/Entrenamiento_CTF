@@ -1,0 +1,8 @@
+{
+  "id": "d27-pwn",
+  "nombre": "Pyroot",
+  "enfoque": "Pwn",
+  "dificultad": 3,
+  "puerto": 8127,
+  "proto": "ssh"
+}

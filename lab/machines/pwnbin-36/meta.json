@@ -1,0 +1,8 @@
+{
+ "id": "pwnbin-36",
+ "nombre": "Terminal de servicio (pwnbin-36)",
+ "enfoque": "Pwn-Bin",
+ "dificultad": 2,
+ "puerto": 8205,
+ "proto": "tcp"
+}

@@ -1,0 +1,8 @@
+{
+ "id": "pwnbin-40",
+ "nombre": "Lector de eventos (pwnbin-40)",
+ "enfoque": "Pwn-Bin",
+ "dificultad": 4,
+ "puerto": 8209,
+ "proto": "tcp"
+}

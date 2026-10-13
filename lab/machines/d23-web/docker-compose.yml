@@ -1,0 +1,8 @@
+services:
+  app:
+    build: .
+    image: dockerlab/d23-web
+    container_name: lab-d23-web
+    ports:
+      - "${BIND:-0.0.0.0}:8023:5000"
+    restart: unless-stopped

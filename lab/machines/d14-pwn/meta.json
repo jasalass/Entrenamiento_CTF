@@ -1,0 +1,8 @@
+{
+  "id": "d14-pwn",
+  "nombre": "Passwd",
+  "enfoque": "Pwn",
+  "dificultad": 3,
+  "puerto": 8114,
+  "proto": "ssh"
+}

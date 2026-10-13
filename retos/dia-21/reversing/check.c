@@ -1,0 +1,12 @@
+#include <stdio.h>
+/* Imprime la flag aplicando la inversa. Entiende rotr8(d[i], 6) ^ 0xea o ejecuta el binario. */
+int main(void){
+    unsigned char d[]={ 0x2b, 0xa9, 0xea, 0x6b, 0x64, 0xa3, 0x36, 0xf6, 0x6d, 0x26, 0xe3, 0x27, 0xe3, 0x26, 0x66, 0xe0, 0x21, 0x63, 0x6d, 0x67, 0xa0, 0x61, 0xe2, 0xe5 };
+    int n=sizeof(d);
+    for(int i=0;i<n;i++){
+        unsigned char b=d[i]; unsigned char r=(unsigned char)((b>>6)|(b<<(8-6)));
+        putchar((unsigned char)(r ^ 0xea));
+    }
+    putchar('\n');
+    return 0;
+}

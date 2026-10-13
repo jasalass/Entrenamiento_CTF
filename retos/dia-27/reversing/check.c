@@ -1,0 +1,14 @@
+#include <stdio.h>
+/* Imprime la flag aplicando la inversa. Entiende d[i] ^ prev ^ 0x43  (prev = cifrado anterior, prev0 = 0x61) o ejecuta el binario. */
+int main(void){
+    unsigned char d[]={ 0x64, 0x6b, 0x69, 0x6d, 0x55, 0x72, 0x03, 0x77, 0x6b, 0x5a, 0x7c, 0x49, 0x6f, 0x5e, 0x6e, 0x44, 0x69, 0x4d, 0x51, 0x7b, 0x42, 0x71, 0x53, 0x6d };
+    int n=sizeof(d);
+    unsigned char prev=0x61;
+    for(int i=0;i<n;i++){
+        unsigned char p=(unsigned char)(d[i] ^ prev ^ 0x43);
+        putchar(p);
+        prev=d[i];
+    }
+    putchar('\n');
+    return 0;
+}

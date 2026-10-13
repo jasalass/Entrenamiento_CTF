@@ -1,0 +1,12 @@
+#include <stdio.h>
+/* Imprime la flag aplicando la inversa. Entiende (~((d[i] - 118) & 0xff)) & 0xff o ejecuta el binario. */
+int main(void){
+    unsigned char d[]={ 0x2f, 0x29, 0x34, 0x2e, 0xfa, 0x11, 0x43, 0x43, 0x16, 0x03, 0x10, 0xff, 0x10, 0x03, 0x02, 0x0c, 0x07, 0x0e, 0x16, 0x09, 0x42, 0x13, 0x42, 0xf8 };
+    int n=sizeof(d);
+    for(int i=0;i<n;i++){
+        unsigned char t=(unsigned char)(d[i] - 118);
+        putchar((unsigned char)(~t));
+    }
+    putchar('\n');
+    return 0;
+}

@@ -1,0 +1,8 @@
+{
+  "id": "d28-web",
+  "nombre": "Sesiones",
+  "enfoque": "Web",
+  "dificultad": 4,
+  "puerto": 8028,
+  "proto": "http"
+}

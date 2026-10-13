@@ -1,0 +1,4 @@
+Registro de acceso del sistema.
+Usuario: invitado
+Sesion: 8c
+Hora: 03:27

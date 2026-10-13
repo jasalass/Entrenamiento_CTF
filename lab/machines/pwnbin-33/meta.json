@@ -1,0 +1,8 @@
+{
+ "id": "pwnbin-33",
+ "nombre": "Control de acceso (pwnbin-33)",
+ "enfoque": "Pwn-Bin",
+ "dificultad": 1,
+ "puerto": 8202,
+ "proto": "tcp"
+}

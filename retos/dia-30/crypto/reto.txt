@@ -1,0 +1,7 @@
+RSA con modulo pequeno.
+
+n = 1022117
+e = 17
+c = 159511
+
+La flag es FLAG{d30_crypto_<m>}.

@@ -1,0 +1,8 @@
+{
+  "id": "d09-web",
+  "nombre": "Templater",
+  "enfoque": "Web",
+  "dificultad": 4,
+  "puerto": 8009,
+  "proto": "http"
+}

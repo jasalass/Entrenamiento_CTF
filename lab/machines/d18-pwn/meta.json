@@ -1,0 +1,8 @@
+{
+  "id": "d18-pwn",
+  "nombre": "DacRead",
+  "enfoque": "Pwn",
+  "dificultad": 4,
+  "puerto": 8118,
+  "proto": "ssh"
+}

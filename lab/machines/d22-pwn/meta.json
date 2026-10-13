@@ -1,0 +1,8 @@
+{
+  "id": "d22-pwn",
+  "nombre": "Sudoer",
+  "enfoque": "Pwn",
+  "dificultad": 2,
+  "puerto": 8122,
+  "proto": "ssh"
+}

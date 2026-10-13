@@ -1,0 +1,8 @@
+{
+  "id": "d30-pwn",
+  "nombre": "Preload",
+  "enfoque": "Pwn",
+  "dificultad": 4,
+  "puerto": 8130,
+  "proto": "ssh"
+}

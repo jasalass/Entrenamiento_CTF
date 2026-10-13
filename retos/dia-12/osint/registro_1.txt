@@ -1,0 +1,4 @@
+Registro de acceso del sistema.
+Usuario: invitado
+Sesion: NHU=
+Hora: 03:12

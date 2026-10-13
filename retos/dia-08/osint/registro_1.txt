@@ -1,0 +1,4 @@
+Registro de acceso del sistema.
+Usuario: invitado
+Sesion: 6364
+Hora: 03:08

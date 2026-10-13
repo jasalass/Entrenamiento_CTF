@@ -1,0 +1,8 @@
+{
+  "id": "d19-web",
+  "nombre": "Templater",
+  "enfoque": "Web",
+  "dificultad": 4,
+  "puerto": 8019,
+  "proto": "http"
+}

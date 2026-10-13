@@ -1,0 +1,4 @@
+Registro de acceso del sistema.
+Usuario: invitado
+Sesion: 4e
+Hora: 03:13

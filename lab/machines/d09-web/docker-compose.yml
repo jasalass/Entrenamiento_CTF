@@ -1,0 +1,8 @@
+services:
+  app:
+    build: .
+    image: dockerlab/d09-web
+    container_name: lab-d09-web
+    ports:
+      - "${BIND:-0.0.0.0}:8009:5000"
+    restart: unless-stopped

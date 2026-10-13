@@ -1,0 +1,8 @@
+{
+  "id": "d28-pwn",
+  "nombre": "DacRead",
+  "enfoque": "Pwn",
+  "dificultad": 4,
+  "puerto": 8128,
+  "proto": "ssh"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "d02-web",
+  "nombre": "Portal",
+  "enfoque": "Web",
+  "dificultad": 2,
+  "puerto": 8002,
+  "proto": "http"
+}

@@ -1,0 +1,1 @@
+FLAG{d42_pwnbin_fmtwrite_o7ry}

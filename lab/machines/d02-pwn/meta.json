@@ -1,0 +1,8 @@
+{
+  "id": "d02-pwn",
+  "nombre": "Sudoer",
+  "enfoque": "Pwn",
+  "dificultad": 2,
+  "puerto": 8102,
+  "proto": "ssh"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "d21-web",
+  "nombre": "Gateway",
+  "enfoque": "Web",
+  "dificultad": 1,
+  "puerto": 8021,
+  "proto": "http"
+}

@@ -1,0 +1,8 @@
+services:
+  app:
+    build: .
+    image: dockerlab/pwnbin-41
+    container_name: lab-pwnbin-41
+    ports:
+      - "${BIND:-0.0.0.0}:8210:9000"
+    restart: unless-stopped

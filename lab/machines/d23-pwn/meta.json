@@ -1,0 +1,8 @@
+{
+  "id": "d23-pwn",
+  "nombre": "Awker",
+  "enfoque": "Pwn",
+  "dificultad": 2,
+  "puerto": 8123,
+  "proto": "ssh"
+}

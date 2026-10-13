@@ -1,0 +1,8 @@
+services:
+  app:
+    build: .
+    image: dockerlab/d13-pwn
+    container_name: lab-d13-pwn
+    ports:
+      - "${BIND:-0.0.0.0}:8113:22"
+    restart: unless-stopped

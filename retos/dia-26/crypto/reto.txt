@@ -1,0 +1,7 @@
+RSA con modulo pequeno.
+
+n = 10139117
+e = 17
+c = 9671893
+
+La flag es FLAG{d26_crypto_<m>}.

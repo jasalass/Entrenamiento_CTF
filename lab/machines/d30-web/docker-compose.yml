@@ -1,0 +1,8 @@
+services:
+  app:
+    build: .
+    image: dockerlab/d30-web
+    container_name: lab-d30-web
+    ports:
+      - "${BIND:-0.0.0.0}:8030:5000"
+    restart: unless-stopped

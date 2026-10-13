@@ -1,0 +1,8 @@
+{
+  "id": "d06-web",
+  "nombre": "Login",
+  "enfoque": "Web",
+  "dificultad": 3,
+  "puerto": 8006,
+  "proto": "http"
+}

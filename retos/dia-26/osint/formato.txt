@@ -1,0 +1,4 @@
+Fuentes REALES: 1..5 (numeradas, nombre_N.txt).
+Concatena las piezas decodificadas en orden 1..5, todo en minusculas.
+El codigo resultante arma FLAG{d26_osint_<codigo>}.
+Hay ademas un archivo sin numero (rumor_extra.txt): es una fuente SIN VERIFICAR, no la uses para armar el codigo. Reconocer y descartar fuentes no confiables tambien es parte del trabajo de OSINT.

@@ -1,0 +1,8 @@
+services:
+  app:
+    build: .
+    image: dockerlab/d05-pwn
+    container_name: lab-d05-pwn
+    ports:
+      - "${BIND:-0.0.0.0}:8105:22"
+    restart: unless-stopped

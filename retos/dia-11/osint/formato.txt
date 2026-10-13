@@ -1,0 +1,3 @@
+Fuentes REALES: 1..3 (numeradas, nombre_N.txt).
+Concatena las piezas decodificadas en orden 1..3, todo en minusculas.
+El codigo resultante arma FLAG{d11_osint_<codigo>}.

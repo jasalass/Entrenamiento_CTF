@@ -1,0 +1,8 @@
+{
+  "id": "d09-pwn",
+  "nombre": "Capable",
+  "enfoque": "Pwn",
+  "dificultad": 4,
+  "puerto": 8109,
+  "proto": "ssh"
+}

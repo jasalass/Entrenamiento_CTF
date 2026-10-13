@@ -1,0 +1,1 @@
+Es un MD5 de 4 letras minusculas [a-z]. Crackealo. La flag es FLAG{d27_crypto_<palabra>}.

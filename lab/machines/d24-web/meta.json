@@ -1,0 +1,8 @@
+{
+  "id": "d24-web",
+  "nombre": "Descargas",
+  "enfoque": "Web",
+  "dificultad": 2,
+  "puerto": 8024,
+  "proto": "http"
+}

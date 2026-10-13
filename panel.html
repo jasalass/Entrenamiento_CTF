@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CTF · Taller local</title>
+<style>
+  :root{
+    --bg:#0d0d0a; --bg-raised:#17160f; --bg-sunken:#0a0a07; --line:#322f22;
+    --fg:#e4ddc8; --dim:#8a8571; --accent:#d99a2b; --accent-dim:rgba(217,154,43,.14);
+    --bad:#e2645a;
+    --crypto:#9b8bc4; --encoding:#5fa8a3; --stego:#c98cae; --forensics:#9db87a;
+    --osint:#b7a65a; --reversing:#c17a52; --web:#6f93c9; --pwn:#c26868; --pwnbin:#a06bc2;
+    --mono:ui-monospace,"Cascadia Code","Fira Code","JetBrains Mono",Consolas,"Liberation Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--bg)}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--mono);font-size:14px;line-height:1.65;
+    -webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  code{font-family:var(--mono)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){ *{animation-duration:.001ms!important;transition-duration:.001ms!important} }
+
+  .wrap{max-width:920px;margin:0 auto;padding:0 18px 80px}
+
+  /* ---- man-page style header / footer ---- */
+  header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--line)}
+  .hd{max-width:920px;margin:0 auto;padding:12px 18px 14px}
+  .manpage{display:flex;justify-content:space-between;gap:14px;font-size:12px;color:var(--dim);flex-wrap:wrap}
+  .manpage .mp-l{color:var(--accent);font-weight:700}
+  .manpage .mp-c{flex:1;text-align:center}
+  @media (max-width:640px){.manpage .mp-c{display:none}}
+  .status{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;font-size:13px}
+  .statnum{color:var(--accent);font-weight:700;font-size:20px}
+  .statlabel{color:var(--dim)}
+  .meter{width:150px;height:7px;background:var(--line);flex:none}
+  .meter>i{display:block;height:100%;width:0;background:var(--accent)}
+  .btn{background:transparent;color:var(--fg);border:1px solid var(--line);border-radius:2px;
+    padding:5px 8px;cursor:pointer;font-size:12.5px;font-family:var(--mono)}
+  .btn::before{content:"[ "} .btn::after{content:" ]"}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* ---- filters: underline fields, no boxes ---- */
+  .filters{display:flex;gap:18px;flex-wrap:wrap;margin:22px 0 4px;font-size:13px}
+  .filters label{color:var(--dim);display:flex;align-items:center;gap:6px}
+  .filters select,.filters input{background:transparent;color:var(--fg);border:none;border-bottom:1px solid var(--line);
+    padding:4px 2px;font-size:13px;font-family:var(--mono)}
+  .filters select:focus,.filters input:focus{border-color:var(--accent)}
+  .filters input{min-width:160px}
+
+  /* ---- intro / guide panels ---- */
+  .intro{border:1px solid var(--line);border-radius:2px;padding:18px;margin:20px 0;background:var(--bg-raised)}
+  .intro h2{margin:.2em 0 .5em;font-size:15px;font-weight:700}
+  details.guide summary{cursor:pointer;font-weight:700;color:var(--accent)}
+  details.guide summary:hover{text-decoration:underline}
+  .grid-tips{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:9px;margin-top:14px}
+  .tip{background:var(--bg-sunken);border:1px solid var(--line);padding:10px 12px;font-size:12.5px}
+  .tip b{display:inline-block;margin-bottom:3px;font-weight:700}
+  .toolcat{margin:20px 0 6px;font-size:13px;font-weight:700;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:4px}
+  details.tool{border:1px solid var(--line);border-radius:2px;margin:6px 0;background:var(--bg-raised);overflow:hidden}
+  details.tool>summary{cursor:pointer;padding:9px 11px;font-size:13px;list-style:none}
+  details.tool>summary::-webkit-details-marker{display:none}
+  details.tool>summary b{color:var(--fg)}
+  details.tool>summary .q{color:var(--dim);font-weight:400}
+  .cmdrow{padding:8px 11px;border-top:1px solid var(--line)}
+  .cmdrow code{display:inline-block;background:var(--bg-sunken);border:1px solid var(--line);border-radius:2px;
+    padding:2px 7px;color:var(--accent);font-size:12.5px}
+  .cmdrow p{margin:5px 0 0;font-size:13px;color:var(--fg)}
+  .cmdrow p b{color:var(--fg)}
+  .cmdrow p.ej{margin-top:5px;color:var(--dim);font-size:12px}
+  .cmdrow p.ej code{background:var(--bg-sunken);border:1px solid var(--line);border-radius:2px;padding:1px 5px;color:var(--dim);font-size:12px}
+
+  /* ---- day section rule (genuinely sequential: a running divider, not a decoration) ---- */
+  .week{display:flex;align-items:baseline;gap:10px;margin:30px 0 8px}
+  .week span{font-size:13px;color:var(--dim);white-space:nowrap}
+  .week i{flex:1;border-bottom:1px solid var(--line);font-style:normal}
+
+  /* ---- reto entry: left accent bar instead of colored card chrome ---- */
+  .card{background:var(--bg-raised);border:1px solid var(--line);border-left-width:3px;border-radius:2px;margin:8px 0;overflow:hidden}
+  .chead{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;flex-wrap:wrap}
+  .daynum{font-weight:700;font-size:13px;min-width:46px;color:var(--dim);white-space:nowrap}
+  .ctitle{font-weight:700;flex:1;min-width:140px}
+  .chip{font-size:12.5px;font-weight:700;white-space:nowrap}
+  .stars{letter-spacing:1px;color:var(--dim);font-size:13px;white-space:nowrap}
+  .tick{font-size:13px;color:var(--dim);flex:none}
+  .card.solved .tick{color:var(--accent);font-weight:700}
+  .cbody{display:none;padding:0 14px 16px;border-top:1px solid var(--line)}
+  .card.open .cbody{display:block}
+  .cbody h4{margin:16px 0 6px;font-size:13px;font-weight:700;color:var(--fg)}
+  .files code{display:block;background:var(--bg-sunken);border:1px solid var(--line);border-radius:2px;
+    padding:6px 10px;margin:4px 0;font-size:13px;color:var(--accent);word-break:break-all}
+  ul.learn{margin:4px 0;padding-left:18px}
+  ol.walk{margin:4px 0;padding-left:20px} ol.walk li{margin:12px 0;line-height:1.5}
+  details.cmd{margin-top:5px}
+  details.cmd summary{cursor:pointer;color:var(--dim);font-size:12.5px;user-select:none}
+  details.cmd summary:hover{color:var(--accent)}
+  ol.walk code{display:block;margin-top:5px;background:var(--bg-sunken);border:1px solid var(--line);border-radius:2px;
+    padding:7px 9px;color:var(--accent);font-size:12.5px;white-space:pre-wrap;word-break:break-word}
+  details.hint{background:var(--bg-sunken);border:1px solid var(--line);border-left:2px solid var(--accent);border-radius:2px;margin:6px 0;padding:7px 11px}
+  details.hint summary{cursor:pointer;color:var(--fg);font-size:13px}
+  details.hint p{margin:7px 0 2px;font-size:13.5px;color:var(--dim)}
+
+  /* ---- marginal-note callouts: color lives only in the left bar ---- */
+  .method,.lesson,.warning{border-radius:2px;padding:9px 12px;font-size:13px;background:var(--bg-sunken);border-left:2px solid}
+  .method{border-left-color:var(--accent)}
+  .lesson{border-left-color:var(--forensics);margin:8px 0}
+  .warning{border-left-color:var(--bad);margin:8px 0}
+  .lesson b,.warning b{color:var(--fg)}
+  .reasoning{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:9px;margin:10px 0}
+  .reasoning .step{background:var(--bg-sunken);border:1px solid var(--line);padding:9px 10px}
+  .reasoning .step b{display:block;color:var(--accent);font-size:12px;margin-bottom:3px}
+  .whycmd{margin-top:6px;color:var(--dim);font-size:12px}
+
+  details.llm{background:var(--bg-sunken);border:1px solid var(--line);border-left:2px solid var(--pwnbin);border-radius:2px;margin:9px 0;padding:9px 12px}
+  details.llm>summary{cursor:pointer;font-weight:700;color:var(--pwnbin)}
+  textarea.llmbox{width:100%;min-height:200px;resize:vertical;background:var(--bg-sunken);color:var(--fg);
+    border:1px solid var(--line);border-radius:2px;padding:10px 12px;font-family:var(--mono);
+    font-size:12px;line-height:1.5;white-space:pre}
+
+  .submit{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .submit input{flex:1;min-width:200px;background:var(--bg-sunken);border:1px solid var(--line);color:var(--fg);
+    border-radius:2px;padding:9px 12px;font-family:var(--mono)}
+  .submit input.ok{border-color:var(--accent)} .submit input.no{border-color:var(--bad);animation:shake .3s}
+  @keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .vbtn{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent);border-radius:2px;
+    padding:0 14px;font-weight:700;cursor:pointer;font-family:var(--mono)}
+  .vbtn::before{content:"[ "} .vbtn::after{content:" ]"}
+  .vbtn:hover{background:var(--accent);color:var(--bg)}
+  .msg{font-size:13px;margin-top:6px;min-height:18px;color:var(--dim)}
+  .msg.ok{color:var(--accent)} .msg.no{color:var(--bad)}
+  .muted{color:var(--dim)}
+
+  footer{display:flex;justify-content:space-between;gap:12px;color:var(--dim);font-size:12px;
+    border-top:1px solid var(--line);margin-top:40px;padding-top:14px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<header>
+  <div class="hd">
+    <div class="manpage">
+      <span class="mp-l">CTF-TALLER(1)</span>
+      <span class="mp-c">Manual de entrenamiento local · 100% Kali</span>
+      <span class="mp-r"><span id="ntotal">260</span> retos</span>
+    </div>
+    <div class="status">
+      <span><span class="statnum" id="nsolved">0</span><span class="statlabel">/<span id="ntotal2">260</span> resueltos</span></span>
+      <div class="meter"><i id="barfill"></i></div>
+      <span class="statlabel"><b id="pts" style="color:var(--fg)">0</b> pts</span>
+      <button class="btn" id="reset">Reiniciar</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="intro">
+    <h2>Tu entrenamiento local</h2>
+    <p class="muted"><b style="color:var(--fg)">8 retos por día</b> durante 30 días (uno de cada enfoque clásico),
+    seguidos de 12 días de explotación de binarios real y 8 de reversing a ciegas — 260 retos en total,
+    dificultad creciente. Trabaja los archivos de cada reto <b style="color:var(--fg)">desde tu Kali</b>
+    (las rutas están dentro de cada tarjeta), y cuando tengas la flag, pégala aquí para validarla.
+    Tu progreso se guarda solo en este navegador.</p>
+    <div class="lesson"><b>Objetivo del entrenamiento:</b> no se trata de memorizar comandos. Se trata de aprender a pasar de una observación a una hipótesis, comprobarla con una herramienta y decidir qué hacer después.</div>
+
+    <details class="guide" open>
+      <summary>📘 Cómo pensar un CTF (léeme primero)</summary>
+      <p>La pregunta central de cualquier reto es: <b>¿qué evidencia tengo y qué hipótesis puedo comprobar con ella?</b> Evita convertir el CTF en una lista de comandos que ejecutas por costumbre.</p>
+      <div class="reasoning">
+        <div class="step"><b>1 · Observación</b>¿Qué tengo realmente? Archivo, bytes, respuesta HTTP, binario, servicio, metadatos.</div>
+        <div class="step"><b>2 · Hipótesis</b>¿Qué podría explicar lo que estoy viendo? Formula una idea concreta.</div>
+        <div class="step"><b>3 · Prueba</b>Elige la herramienta que pueda confirmar o descartar esa idea.</div>
+        <div class="step"><b>4 · Interpretación</b>No basta con obtener una salida: decide qué significa y qué nueva pista aporta.</div>
+        <div class="step"><b>5 · Siguiente paso</b>Repite el ciclo hasta llegar a la flag. No ejecutes técnicas sin una razón.</div>
+      </div>
+      <ol>
+        <li><b>Reconoce, no adivines.</b> Mira qué tienes: <code>file</code>, <code>strings</code>, <code>xxd</code>, editor o navegador. El formato y los bytes dan evidencia.</li>
+        <li><b>Codificar ≠ cifrar.</b> Base64, hex y binario representan datos; César, Vigenère y XOR transforman datos con una lógica que debes invertir. Un hash no se "descifra".</li>
+        <li><b>Piensa en capas.</b> Si una salida parece otra representación de datos, decodifica esa capa y vuelve a observar antes de decidir la siguiente técnica.</li>
+        <li><b>Invierte la operación.</b> En reversing y crypto, identifica primero la transformación. Si hay varias, reconstruye el orden y aplícalo al revés.</li>
+        <li><b>Todo lo del cliente es observable.</b> En web, HTML, JavaScript, cookies y peticiones forman parte de la superficie que el reto te permite estudiar.</li>
+        <li><b>Documenta.</b> Registra observaciones, hipótesis, comandos usados y resultados. Una salida aparentemente inútil puede explicar la siguiente etapa.</li>
+      </ol>
+      <div class="warning"><b>Error típico:</b> lanzar <code>gobuster</code>, <code>sqlmap</code>, <code>binwalk</code> o cualquier otra herramienta "porque sí". Primero explica qué quieres descubrir; después elige cómo comprobarlo.</div>
+      <div class="grid-tips">
+        <div class="tip"><b style="color:var(--crypto)">Crypto</b><br>¿Sustitución, clave repetida (XOR) o RSA/hash? <code>Kali:</code> xortool, hashid, hashcat, john, RsaCtfTool, openssl, python3.</div>
+        <div class="tip"><b style="color:var(--encoding)">Encoding</b><br>Identifica el alfabeto (Base64/32/85, hex, binario) y desapila capas. <code>Kali:</code> base64, basenc, xxd, tr, rev, python3.</div>
+        <div class="tip"><b style="color:var(--stego)">Stego</b><br>LSB, datos tras EOF, metadatos, invisibles. <code>Kali:</code> zsteg, stegsolve, steghide, binwalk, foremost, exiftool, pngcheck.</div>
+        <div class="tip"><b style="color:var(--forensics)">Forensics</b><br>La extensión miente; manda el magic number. <code>Kali:</code> file, binwalk, foremost, strings, xxd, exiftool, zcat, unzip.</div>
+        <div class="tip"><b style="color:var(--osint)">OSINT</b><br>Extrae entidades, cruza fuentes y normaliza (mayús/minús, orden). <code>Kali:</code> exiftool, strings, grep.</div>
+        <div class="tip"><b style="color:var(--reversing)">Reversing</b><br>Antes de debuggear, LEE la lógica e invierte la comprobación. <code>Kali:</code> r2/radare2, gdb, ltrace, strace, objdump, ghidra.</div>
+        <div class="tip"><b style="color:var(--web)">Web</b><br>robots.txt, comentarios, /.js, cookies y JWT. <code>Kali:</code> curl, burpsuite, gobuster/ffuf, nikto, whatweb, jwt_tool.</div>
+        <div class="tip"><b style="color:var(--pwn)">Pwn / Privesc</b><br>SUID, <code>sudo -l</code>, cron, PATH, writable, capabilities. <code>Kali:</code> linpeas, pspy, find -perm -4000, GTFOBins.</div>
+      </div>
+    </details>
+
+    <details class="guide" style="margin-top:12px">
+      <summary>🔧 Cómo usar las herramientas (referencia con ejemplos)</summary>
+      <p class="muted" style="margin:6px 0">Esta sección es una referencia, no una receta. Para cada herramienta intenta responder primero: <b style="color:var(--fg)">¿qué quiero descubrir?, ¿por qué esta herramienta me ayuda?, ¿qué resultado espero?</b> Luego ejecuta el comando y aprende a interpretar su salida.</p>
+      <div class="reasoning"><div class="step"><b>Antes</b>Define la pregunta.</div><div class="step"><b>Durante</b>Observa la salida, no solo si "funcionó".</div><div class="step"><b>Después</b>Convierte el resultado en una nueva hipótesis.</div></div>
+
+      <div class="toolcat">Crypto / Encoding</div>
+      <details class="tool"><summary><b>base64 · basenc · xxd · tr · rev</b> <span class="q">— codificaciones en terminal</span></summary>
+        <div class="cmdrow"><code>base64 -d ARCHIVO</code><p><b>-d</b> = decode. Sin <b>-d</b>, codifica.</p><p class="ej">Ej. <code>base64 -d mensaje.b64</code> · codificar: <code>printf admin | base64</code> → <code>YWRtaW4=</code></p></div>
+        <div class="cmdrow"><code>basenc --base32 -d ARCHIVO</code><p>Decodifica Base32. También <b>--base16</b>, <b>--base64</b>, <b>--base85</b>.</p><p class="ej">Ej. <code>basenc --base32 -d fuente_1.txt</code></p></div>
+        <div class="cmdrow"><code>xxd ARCHIVO</code><p>Volcado hex (offset | hex | ASCII) para inspeccionar bytes.</p><p class="ej">Ej. <code>xxd foto.png | tail</code> → ver datos adjuntos tras el EOF.</p></div>
+        <div class="cmdrow"><code>xxd -r -p ARCHIVO</code><p>Revierte hex a bytes. <b>-r</b> reverse, <b>-p</b> plain (hex continuo).</p><p class="ej">Ej. <code>xxd -r -p datos.hex</code> → texto con la flag.</p></div>
+        <div class="cmdrow"><code>tr 'A-Za-z' 'N-ZA-Mn-za-m'</code><p>Aplica ROT13 (mapea cada letra 13 posiciones).</p><p class="ej">Ej. <code>cat frag.txt | tr 'A-Za-z' 'N-ZA-Mn-za-m'</code></p></div>
+        <div class="cmdrow"><code>rev</code><p>Invierte una cadena (útil si una capa está al revés).</p><p class="ej">Ej. <code>echo 46414c47 | rev</code> → <code>74414c6164</code></p></div>
+      </details>
+      <details class="tool"><summary><b>hashid · hashcat · john</b> <span class="q">— identificar y crackear hashes</span></summary>
+        <div class="cmdrow"><code>hashid ARCHIVO</code><p>Identifica el algoritmo por el formato del hash.</p><p class="ej">Ej. <code>hashid hash.txt</code> → "MD5".</p></div>
+        <div class="cmdrow"><code>hashcat -m 0 -a 3 ARCHIVO ?l?l?l?l</code><p><b>-m 0</b> MD5 (100=SHA1, 1400=SHA256). <b>-a 3</b> máscara. <b>?l</b> minúscula, <b>?u</b> mayúscula, <b>?d</b> dígito, <b>?a</b> todo.</p><p class="ej">Ej. <code>hashcat -m 0 -a 3 hash.txt ?l?l?l?l</code> → palabra de 4 minúsculas.</p></div>
+        <div class="cmdrow"><code>hashcat -m 0 -a 0 ARCHIVO DICCIONARIO</code><p><b>-a 0</b> = diccionario (prueba cada palabra del archivo).</p><p class="ej">Ej. <code>hashcat -m 0 -a 0 hash.txt /usr/share/wordlists/rockyou.txt</code></p></div>
+        <div class="cmdrow"><code>john --format=raw-md5 --mask='?l?l?l?l' ARCHIVO</code><p>Mismo ataque con John; también <code>--wordlist=</code>. Ver resultado con <code>--show</code>.</p><p class="ej">Ej. <code>john --format=raw-md5 --mask='?l?l?l?l' hash.txt</code> ; <code>john --show hash.txt</code></p></div>
+      </details>
+      <details class="tool"><summary><b>xortool · RsaCtfTool · openssl · python+sympy</b> <span class="q">— XOR y RSA</span></summary>
+        <div class="cmdrow"><code>xortool ARCHIVO</code><p>Estima la longitud y la clave probable de un XOR repetido. <b>-c ' '</b> asume que el byte más común del texto es el espacio.</p><p class="ej">Ej. <code>xxd -r -p cifrado.hex &gt; ct.bin ; xortool ct.bin -c ' '</code></p></div>
+        <div class="cmdrow"><code>RsaCtfTool -n N -e E --uncipher C</code><p>Factoriza n, deriva d y descifra c automáticamente.</p><p class="ej">Ej. <code>RsaCtfTool -n 47053 -e 17 --uncipher 12345</code></p></div>
+        <div class="cmdrow"><code>python3 -c "import sympy;print(sympy.factorint(N))"</code><p>Factoriza n (para RSA con módulo pequeño).</p><p class="ej">Ej. <code>python3 -c "import sympy;print(sympy.factorint(47053))"</code> → {211:1, 223:1}</p></div>
+        <div class="cmdrow"><code>d=pow(e,-1,phi) ; m=pow(c,d,n)</code><p>Con p,q: <code>phi=(p-1)*(q-1)</code>, luego clave privada d y descifrado m.</p><p class="ej">Ej. <code>python3 -c "p,q,e,c=211,223,17,X;phi=(p-1)*(q-1);d=pow(e,-1,phi);print(pow(c,d,p*q))"</code></p></div>
+        <div class="cmdrow"><code>openssl passwd -6 CLAVE</code><p>Genera un hash de contraseña (formato /etc/shadow).</p><p class="ej">Ej. <code>openssl passwd -6 toor</code> → úsalo al editar /etc/passwd.</p></div>
+      </details>
+
+      <div class="toolcat">Stego / Forense</div>
+      <details class="tool"><summary><b>file · strings · grep · wc</b> <span class="q">— primer vistazo</span></summary>
+        <div class="cmdrow"><code>file ARCHIVO</code><p><b>Pregunta que responde:</b> "¿Qué tipo de datos tengo realmente?" Usa firmas internas (magic number), no confíes en la extensión.</p><p class="ej">Ej. <code>file datos.bin</code> → "data" (binario crudo).</p></div>
+        <div class="cmdrow"><code>strings ARCHIVO</code><p><b>Pregunta que responde:</b> "¿Hay texto legible incrustado?" Extrae cadenas imprimibles. Si aparece una URL, nombre, mensaje o fragmento de flag, úsalo como evidencia para el siguiente paso.</p><p class="ej">Ej. <code>strings foto.png | tail</code></p></div>
+        <div class="cmdrow"><code>strings ARCHIVO | grep -i flag</code><p><b>grep -i</b> ignora mayúsculas, <b>-a</b> binario como texto, <b>-A1</b> una línea después.</p><p class="ej">Ej. <code>strings datos.bin | grep -i flag</code></p></div>
+        <div class="cmdrow"><code>wc -c ARCHIVO</code><p>Cuenta bytes; sirve para sospechar contenido invisible.</p><p class="ej">Ej. <code>wc -c nota.txt</code> → pesa más de lo que ves (zero-width).</p></div>
+      </details>
+      <details class="tool"><summary><b>exiftool</b> <span class="q">— metadatos</span></summary>
+        <div class="cmdrow"><code>exiftool ARCHIVO</code><p><b>Pregunta que responde:</b> "¿El archivo contiene información descriptiva que no veo a simple vista?" Revisa campos como <i>Comment</i>, <i>Author</i> o <i>Artist</i>, pero no asumas que cualquier metadato es la flag.</p><p class="ej">Ej. <code>exiftool postal.png</code> → campo Comment con la flag.</p></div>
+        <div class="cmdrow"><code>exiftool -CAMPO ARCHIVO</code><p>Muestra solo un campo.</p><p class="ej">Ej. <code>exiftool -Comment postal.png</code></p></div>
+      </details>
+      <details class="tool"><summary><b>binwalk · foremost · zcat · unzip</b> <span class="q">— archivos embebidos y comprimidos</span></summary>
+        <div class="cmdrow"><code>binwalk ARCHIVO</code><p><b>Pregunta que responde:</b> "¿Hay otra estructura o archivo escondido dentro de estos bytes?" La salida y sus offsets indican qué evidencia merece ser extraída o inspeccionada.</p><p class="ej">Ej. <code>binwalk captura.dat</code> → "Zip archive data".</p></div>
+        <div class="cmdrow"><code>binwalk -e ARCHIVO</code><p><b>-e</b> extrae a <code>_ARCHIVO.extracted/</code>. <b>-Me</b> recursivo.</p><p class="ej">Ej. <code>binwalk -e captura.dat</code> → dentro aparece flag.txt.</p></div>
+        <div class="cmdrow"><code>foremost ARCHIVO</code><p>Carving por firmas a la carpeta <code>output/</code>.</p><p class="ej">Ej. <code>foremost backup.bin -o salida</code></p></div>
+        <div class="cmdrow"><code>zcat / unzip</code><p><code>zcat</code> descomprime gzip a pantalla; <code>unzip</code> abre ZIP (<b>-l</b> lista).</p><p class="ej">Ej. <code>zcat backup.gz</code> · <code>unzip flag.zip</code></p></div>
+      </details>
+      <details class="tool"><summary><b>zsteg · stegsolve</b> <span class="q">— LSB en imágenes</span></summary>
+        <div class="cmdrow"><code>zsteg IMG.png</code><p>Prueba las combinaciones LSB comunes en PNG/BMP.</p><p class="ej">Ej. <code>zsteg imagen.png</code></p></div>
+        <div class="cmdrow"><code>zsteg -a IMG.png</code><p><b>-a</b> = todas (todos los canales y planos de bits).</p><p class="ej">Ej. <code>zsteg -a imagen.png</code> → línea tipo <code>b1,r,lsb,xy ... text: "FLAG&#123;..."</code></p></div>
+        <div class="cmdrow"><code>zsteg -E 'b1,rgb,lsb,xy' IMG.png</code><p><b>-E</b> extrae exactamente ese plano/canal.</p><p class="ej">Ej. <code>zsteg -E 'b1,r,lsb,xy' imagen.png</code></p></div>
+        <div class="cmdrow"><p><b>stegsolve (GUI):</b> abre la imagen, recorre los planos con las flechas, y <i>Analyse ▸ Data Extract</i> marcando R/G/B + LSB.</p></div>
+      </details>
+
+      <details class="tool"><summary><b>steghide · pngcheck</b> <span class="q">— stego en JPG y estructura PNG</span></summary>
+        <div class="cmdrow"><code>steghide extract -sf IMG.jpg</code><p>Extrae datos ocultos con steghide (JPG/BMP/WAV). Pide <i>passphrase</i>: prueba vacía (Enter) o la que insinúe el reto.</p><p class="ej">Ej. <code>steghide extract -sf foto.jpg</code> · ver si hay algo: <code>steghide info foto.jpg</code></p></div>
+        <div class="cmdrow"><code>pngcheck -v IMG.png</code><p>Valida la estructura del PNG y lista sus <i>chunks</i>; delata chunks raros o datos pegados tras el fin (IEND).</p><p class="ej">Ej. <code>pngcheck -v foto.png</code> → avisa de "additional data after IEND".</p></div>
+      </details>
+
+      <div class="toolcat">Reversing</div>
+      <details class="tool"><summary><b>gcc · make</b> <span class="q">— compilar</span></summary>
+        <div class="cmdrow"><code>make</code><p>Compila usando el Makefile incluido (genera <code>./check</code>).</p><p class="ej">Ej. <code>make &amp;&amp; ./check</code> → imprime la flag.</p></div>
+        <div class="cmdrow"><code>gcc FUENTE.c -o SALIDA</code><p>Compila a mano si no hay Makefile.</p><p class="ej">Ej. <code>gcc check.c -o check &amp;&amp; ./check</code></p></div>
+      </details>
+      <details class="tool"><summary><b>radare2 · gdb · ltrace · strace · objdump</b> <span class="q">— analizar binarios</span></summary>
+        <div class="cmdrow"><code>r2 -AA ./bin</code><p><b>Pregunta que responde:</b> "¿Qué lógica implementa este binario?" Empieza buscando funciones, strings y el flujo de <code>main</code>; la meta es reconstruir la comprobación, no leer cada instrucción.</p><p class="ej">Ej. <code>r2 -AA ./check</code> → <code>pdf @ main</code></p></div>
+        <div class="cmdrow"><code>ltrace ./bin</code><p>Traza llamadas a librería; revela comparaciones (p. ej. strcmp con la clave).</p><p class="ej">Ej. <code>ltrace ./check miClave</code></p></div>
+        <div class="cmdrow"><code>strace ./bin</code><p>Traza syscalls (open, read, execve).</p><p class="ej">Ej. <code>strace -f ./check</code></p></div>
+        <div class="cmdrow"><code>objdump -d ./bin</code><p>Desensambla (<b>-d</b>). <code>-s -j .rodata</code> vuelca constantes.</p><p class="ej">Ej. <code>objdump -d ./check | less</code></p></div>
+        <div class="cmdrow"><code>gdb ./bin</code><p>Depura: <code>break main</code>, <code>run</code>, <code>ni</code>/<code>si</code>, <code>info registers</code>.</p><p class="ej">Ej. <code>gdb ./check</code> → <code>break main</code> → <code>run</code></p></div>
+        <div class="cmdrow"><code>python3 -c "..."</code><p>Invertir la transformación leída en el fuente, sin compilar.</p><p class="ej">Ej. <code>python3 -c "d=[0x55,0x5e];print(bytes(b^0x13 for b in d))"</code></p></div>
+      </details>
+      <details class="tool"><summary><b>rabin2 · ghidra</b> <span class="q">— info del binario y decompilador</span></summary>
+        <div class="cmdrow"><code>rabin2 -I ./bin</code><p>Información del binario: arquitectura, bits, protecciones (NX, PIE, canary). <b>-z</b> strings, <b>-s</b> símbolos. (viene con radare2).</p><p class="ej">Ej. <code>rabin2 -I ./check</code> · <code>rabin2 -z ./check</code></p></div>
+        <div class="cmdrow"><code>ghidra</code><p>Decompilador gráfico (NSA): importa el binario, autoanaliza y lee el <i>pseudo-C</i> de cada función. Lo mejor para lógica compleja.</p><p class="ej">Ej. abre Ghidra → File ▸ Import <code>check</code> → doble clic en <code>main</code>.</p></div>
+      </details>
+
+      <div class="toolcat">Web</div>
+      <details class="tool"><summary><b>nmap</b> <span class="q">— descubrir puertos y servicios</span></summary>
+        <div class="cmdrow"><code>nmap -sCV -p- IP</code><p><b>Pregunta que responde:</b> "¿Qué superficie de servicio expone la máquina del laboratorio?" Primero identifica puertos y versiones; después decide qué servicio merece investigación.</p><p class="ej">Ej. <code>nmap -sCV -p- 127.0.0.1</code> → 8001/http.</p></div>
+        <div class="cmdrow"><code>nmap -p PUERTO -sV IP</code><p>Escaneo rápido de un puerto conocido.</p><p class="ej">Ej. <code>nmap -p 8001 -sV 127.0.0.1</code></p></div>
+      </details>
+      <details class="tool"><summary><b>curl</b> <span class="q">— hacer peticiones HTTP</span></summary>
+        <div class="cmdrow"><code>curl -s URL</code><p><b>Pregunta que responde:</b> "¿Qué me entrega realmente el servidor?" Inspecciona cuerpo, cabeceras, redirecciones y respuestas antes de intentar explotar nada.</p><p class="ej">Ej. <code>curl -s http://127.0.0.1:8001/robots.txt</code></p></div>
+        <div class="cmdrow"><code>curl -b "k=v" URL</code><p>Envía una cookie.</p><p class="ej">Ej. <code>curl -b "auth=YWRtaW4=" http://127.0.0.1:8002/panel</code></p></div>
+        <div class="cmdrow"><code>curl --data 'a=b' URL</code><p>POST (formulario). <b>--data-urlencode</b> codifica valores con espacios/símbolos.</p><p class="ej">Ej. <code>curl --get --data-urlencode "id=0 UNION SELECT id,flag FROM secret" http://IP:8007/item</code></p></div>
+      </details>
+      <details class="tool"><summary><b>gobuster · ffuf · jwt_tool · sqlmap</b> <span class="q">— enumeración y explotación web</span></summary>
+        <div class="cmdrow"><code>gobuster dir -u URL -w LISTA</code><p>Fuerza bruta de rutas con un diccionario (<b>-w</b>).</p><p class="ej">Ej. <code>gobuster dir -u http://127.0.0.1:8001 -w /usr/share/wordlists/dirb/common.txt</code></p></div>
+        <div class="cmdrow"><code>ffuf -u URL/FUZZ -w LISTA</code><p>Igual que gobuster; <b>FUZZ</b> es el marcador que se sustituye.</p><p class="ej">Ej. <code>ffuf -u http://127.0.0.1:8001/FUZZ -w /usr/share/wordlists/dirb/common.txt</code></p></div>
+        <div class="cmdrow"><code>jwt_tool TOKEN</code><p>Decodifica header/payload. <b>-X a</b> ataque alg:none (firma vacía).</p><p class="ej">Ej. <code>jwt_tool $(cat token.txt) -X a</code> → token forjado de admin.</p></div>
+        <div class="cmdrow"><code>sqlmap -u URL --data 'u=a&amp;p=a' --dump</code><p>Detecta y explota SQLi; <b>--dump</b> vuelca datos, <b>-T</b> una tabla, <b>--batch</b> sin preguntar.</p><p class="ej">Ej. <code>sqlmap -u http://IP:8006/ --data 'user=a&amp;pass=a' --dump -T users --batch</code></p></div>
+      </details>
+      <details class="tool"><summary><b>whatweb · nikto</b> <span class="q">— fingerprint y escaneo del sitio</span></summary>
+        <div class="cmdrow"><code>whatweb URL</code><p>Identifica tecnologías: servidor, framework, lenguaje, versiones. Primer paso tras descubrir un web.</p><p class="ej">Ej. <code>whatweb http://127.0.0.1:8001</code></p></div>
+        <div class="cmdrow"><code>nikto -h URL</code><p>Escáner de vulnerabilidades y archivos/rutas conocidas (configuraciones, backups, cabeceras inseguras).</p><p class="ej">Ej. <code>nikto -h http://127.0.0.1:8001</code></p></div>
+      </details>
+      <details class="tool"><summary><b>Burp Suite</b> <span class="q">— proxy para interceptar/repetir</span></summary>
+        <div class="cmdrow"><p>Configura el navegador para usar Burp como proxy (127.0.0.1:8080). Intercepta peticiones, mándalas a <i>Repeater</i> para modificarlas y reenviarlas (cookies, parámetros, cabeceras). Alternativa gráfica a curl.</p></div>
+      </details>
+
+      <div class="toolcat">Pwn / Escalada</div>
+      <details class="tool"><summary><b>ssh</b> <span class="q">— entrar a la máquina</span></summary>
+        <div class="cmdrow"><code>ssh USUARIO@IP -p PUERTO</code><p>Conecta por SSH; acepta la huella con <i>yes</i> la primera vez.</p><p class="ej">Ej. <code>ssh ctf@127.0.0.1 -p 8101</code> (contraseña: ctf)</p></div>
+      </details>
+      <details class="tool"><summary><b>find · sudo -l · getcap</b> <span class="q">— buscar vías de escalada</span></summary>
+        <div class="cmdrow"><code>find / -perm -4000 -type f 2>/dev/null</code><p><b>Pregunta que responde:</b> "¿Qué programas pueden ejecutarse con privilegios distintos a los míos?" Después de encontrar uno, investiga por qué es interesante antes de intentar usarlo.</p><p class="ej">Ej. encuentra <code>/usr/local/bin/runner</code> → ejecútalo → shell root.</p></div>
+        <div class="cmdrow"><code>sudo -l</code><p>Qué puedes correr como root por sudo; busca cada binario en GTFOBins.</p><p class="ej">Ej. <code>sudo -l</code> → <code>(root) NOPASSWD: /usr/bin/find</code></p></div>
+        <div class="cmdrow"><code>getcap -r / 2>/dev/null</code><p>Lista capabilities. Peligrosas: <i>cap_setuid</i>, <i>cap_dac_read_search</i>.</p><p class="ej">Ej. <code>getcap -r / 2>/dev/null</code> → <code>python3cap cap_setuid+ep</code></p></div>
+      </details>
+      <details class="tool"><summary><b>linpeas · pspy · GTFOBins · gcc</b> <span class="q">— enumerar y explotar</span></summary>
+        <div class="cmdrow"><code>./linpeas.sh</code><p>Enumera automáticamente todas las vías de escalada; resalta lo explotable.</p><p class="ej">Ej. súbelo a la máquina y <code>./linpeas.sh | less -r</code></p></div>
+        <div class="cmdrow"><code>./pspy64</code><p>Observa procesos y cron en vivo sin ser root.</p><p class="ej">Ej. <code>./pspy64</code> → ves a root ejecutar /opt/backup.sh cada minuto.</p></div>
+        <div class="cmdrow"><code>GTFOBins</code><p>Catálogo <code>gtfobins.github.io</code>: dado un binario con sudo/SUID/cap, da el comando exacto para escalar.</p><p class="ej">Ej. find (sudo): <code>sudo find . -exec /bin/sh \; -quit</code></p></div>
+        <div class="cmdrow"><code>gcc -fPIC -shared -o e.so e.c -nostartfiles</code><p>Compila una librería para LD_PRELOAD (con constructor que da shell).</p><p class="ej">Ej. <code>sudo LD_PRELOAD=/tmp/e.so id</code> → shell root.</p></div>
+      </details>
+
+      <div class="toolcat">Plataforma (levantar máquinas)</div>
+      <details class="tool"><summary><b>docker compose</b> <span class="q">— arrancar/parar una máquina del lab</span></summary>
+        <div class="cmdrow"><code>docker compose -f RUTA/docker-compose.yml up -d --build</code><p>Construye y arranca el contenedor en segundo plano (<b>-d</b>). El primer build tarda.</p><p class="ej">Ej. <code>cd lab/machines/d01-web &amp;&amp; docker compose up -d --build</code></p></div>
+        <div class="cmdrow"><code>docker compose ... down</code><p>Detiene y elimina el contenedor al terminar.</p><p class="ej">Ej. <code>docker compose down</code> (o el botón «Detener» del panel).</p></div>
+      </details>
+    </details>
+  </div>
+
+  <div class="filters">
+    <label>enfoque <select id="fEnfoque"><option value="">todos</option></select></label>
+    <label>nivel <select id="fNivel">
+      <option value="">todos</option>
+      <option value="1">N1 · fácil</option><option value="2">N2 · medio</option>
+      <option value="3">N3 · difícil</option><option value="4">N4 · avanzado</option>
+    </select></label>
+    <label>estado <select id="fEstado">
+      <option value="">todos</option><option value="no">pendientes</option><option value="si">resueltos</option>
+    </select></label>
+    <label>buscar <input id="fText" placeholder="texto libre…"></label>
+  </div>
+
+  <div id="list"></div>
+  <footer>
+    <span>ctf-taller · 100% local</span>
+    <span>Progreso guardado localmente · flags en <code>SOLUCIONES.md</code> (spoilers)</span>
+  </footer>
+</div>
+
+<script src="manifest.js"></script>
+<script>
+/* ---------- SHA-256 puro (funciona también en file://) ---------- */
+function sha256(ascii){
+  function R(n,x){return(x>>>n)|(x<<(32-n));}
+  var K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+  0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+  0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+  0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+  0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+  0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+  0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+  0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  var H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  var bytes=[];for(var i=0;i<ascii.length;i++){var c=ascii.charCodeAt(i);
+    if(c<128)bytes.push(c);else if(c<2048){bytes.push(192|(c>>6),128|(c&63));}
+    else{bytes.push(224|(c>>12),128|((c>>6)&63),128|(c&63));}}
+  var l=bytes.length,bl=l*8;bytes.push(0x80);while(bytes.length%64!=56)bytes.push(0);
+  for(var i=7;i>=0;i--)bytes.push((Math.floor(bl/Math.pow(2,i*8)))&0xff);
+  var w=new Array(64);
+  for(var j=0;j<bytes.length;j+=64){
+    for(var i=0;i<16;i++)w[i]=(bytes[j+i*4]<<24)|(bytes[j+i*4+1]<<16)|(bytes[j+i*4+2]<<8)|(bytes[j+i*4+3]);
+    for(var i=16;i<64;i++){var s0=R(7,w[i-15])^R(18,w[i-15])^(w[i-15]>>>3);
+      var s1=R(17,w[i-2])^R(19,w[i-2])^(w[i-2]>>>10);w[i]=(w[i-16]+s0+w[i-7]+s1)|0;}
+    var a=H[0],b=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+    for(var i=0;i<64;i++){var S1=R(6,e)^R(11,e)^R(25,e);var ch=(e&f)^((~e)&g);
+      var t1=(h+S1+ch+K[i]+w[i])|0;var S0=R(2,a)^R(13,a)^R(22,a);var mj=(a&b)^(a&c)^(b&c);
+      var t2=(S0+mj)|0;h=g;g=f;f=e;e=(d+t1)|0;d=c;c=b;b=a;a=(t1+t2)|0;}
+    H[0]=(H[0]+a)|0;H[1]=(H[1]+b)|0;H[2]=(H[2]+c)|0;H[3]=(H[3]+d)|0;
+    H[4]=(H[4]+e)|0;H[5]=(H[5]+f)|0;H[6]=(H[6]+g)|0;H[7]=(H[7]+h)|0;}
+  var out="";for(var i=0;i<8;i++)out+=("00000000"+(H[i]>>>0).toString(16)).slice(-8);
+  return out;
+}
+
+/* ---------- estado ---------- */
+var DATA=(window.CTF_DATA&&window.CTF_DATA.retos)||[];
+var COLORS={Crypto:'--crypto',Encoding:'--encoding',Stego:'--stego',Forensics:'--forensics',
+  OSINT:'--osint',Reversing:'--reversing',Web:'--web',Pwn:'--pwn','Pwn-Bin':'--pwnbin'};
+var KEY='ctf30_progress';
+var srvOK=(location.protocol==='http:'||location.protocol==='https:');
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}}
+function save(s){
+  try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}
+  if(srvOK){try{fetch('/api/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({solved:s})});}catch(e){}}
+}
+var solved=load();
+/* siembra unica: marca los retos ya resueltos del dia 1 la primera vez (cualquier navegador/modo) */
+function seedOnce(){
+  var SEED=['1_Crypto','1_Encoding','1_Forensics','1_Stego'];
+  try{ if(localStorage.getItem('ctf30_seeded')) return; }catch(e){}
+  var changed=false;
+  SEED.forEach(function(k){ if(!solved[k]){ solved[k]=true; changed=true; } });
+  try{ localStorage.setItem('ctf30_seeded','1'); }catch(e){}
+  if(changed) save(solved);
+}
+
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+
+function updateStats(){
+  var n=DATA.filter(function(r){return solved[r.day+'_'+r.enfoque]}).length;
+  document.getElementById('nsolved').textContent=n;
+  document.getElementById('pts').textContent=n*100;
+  document.getElementById('barfill').style.width=(n/DATA.length*100)+'%';
+  document.getElementById('ntotal').textContent=DATA.length;
+  document.getElementById('ntotal2').textContent=DATA.length;
+}
+
+function render(){
+  var fe=document.getElementById('fEnfoque').value,
+      fn=document.getElementById('fNivel').value,
+      fs=document.getElementById('fEstado').value,
+      ft=document.getElementById('fText').value.toLowerCase();
+  var list=document.getElementById('list');list.innerHTML='';
+  var NN={1:'N1 · fácil',2:'N2 · medio',3:'N3 · difícil',4:'N4 · avanzado'};
+  var lastDay=-1;
+  DATA.forEach(function(r){
+    if(fe&&r.enfoque!==fe)return;
+    if(fn&&String(r.nivel)!==fn)return;
+    var isS=!!solved[r.day+'_'+r.enfoque];
+    if(fs==='si'&&!isS)return; if(fs==='no'&&isS)return;
+    if(ft&&!(r.titulo+r.enfoque+r.brief).toLowerCase().includes(ft))return;
+    if(r.day!==lastDay){lastDay=r.day;var h=document.createElement('div');h.className='week';
+      h.innerHTML='<span>día '+r.day+' · '+(NN[r.nivel]||'')+'</span><i></i>';list.appendChild(h);}
+    var col='var('+(COLORS[r.enfoque]||'--dim')+')';
+    var stars='#'.repeat(r.nivel)+'-'.repeat(4-r.nivel);
+    var midHTML=(r.tipo==='maquina')?maqHTML(r):(r.tipo==='pwnbin')?(filesHTML(r)+maqHTML(r)):filesHTML(r);
+    var card=document.createElement('div');card.className='card'+(isS?' solved':'');
+    card.style.borderLeftColor=col;
+    card.innerHTML=
+      '<div class="chead">'+
+        '<span class="daynum">día '+r.day+'</span>'+
+        '<span class="chip" style="color:'+col+'">['+esc(r.enfoque)+']</span>'+
+        '<span class="stars" title="Dificultad '+r.nivel+'/4">'+stars+'</span>'+
+        '<span class="ctitle">'+esc(r.titulo)+'</span>'+
+        '<span class="tick">'+(isS?'[x]':'[ ]')+'</span>'+
+      '</div>'+
+      '<div class="cbody">'+
+        '<p>'+esc(r.brief)+'</p>'+
+        '<h4>Qué vas a aprender</h4><ul class="learn">'+r.aprendes.map(function(a){return '<li>'+esc(a)+'</li>'}).join('')+'</ul>'+
+        midHTML+
+        guiaHTML(r)+
+        (r.metodo?'<h4>Herramientas (Kali)</h4><div class="method"><b>Úsalas para responder una pregunta, no para ejecutar una receta.</b><br>'+esc(r.metodo)+'</div>':'')+
+        promptHTML(r)+
+        '<h4>Pistas (ábrelas solo si te atascas)</h4>'+
+        r.pistas.map(function(p,i){return '<details class="hint"><summary>Pista '+(i+1)+'</summary><p>'+esc(p)+'</p></details>'}).join('')+
+        '<h4>Enviar flag</h4>'+
+        '<div class="submit"><input type="text" placeholder="FLAG{...}" data-cid="'+r.day+'_'+r.enfoque+'">'+
+        '<button class="vbtn" data-cid="'+r.day+'_'+r.enfoque+'">Validar</button></div>'+
+        '<div class="msg" data-msg="'+r.day+'_'+r.enfoque+'">'+(isS?'<span class="ok">✓ Resuelto</span>':'')+'</div>'+
+      '</div>';
+    // toggle
+    card.querySelector('.chead').addEventListener('click',function(){card.classList.toggle('open')});
+    list.appendChild(card);
+  });
+  bindSubmits();bindMachines();bindPrompts();
+}
+
+function bindSubmits(){
+  document.querySelectorAll('.vbtn[data-cid]').forEach(function(btn){
+    var cid=btn.getAttribute('data-cid');
+    btn.onclick=function(){
+      var inp=document.querySelector('input[data-cid="'+cid+'"]');
+      var msg=document.querySelector('[data-msg="'+cid+'"]');
+      var val=inp.value.trim();
+      if(!val){inp.focus();return;}
+      var parts=cid.split('_');var day=parts[0],enf=parts[1];
+      var r=DATA.find(function(x){return String(x.day)===day&&x.enfoque===enf});
+      if(sha256(val)===r.hash){
+        solved[cid]=true;save(solved);
+        inp.className='ok';msg.className='msg ok';msg.innerHTML='✓ ¡Correcto! +100 puntos';
+        inp.closest('.card').classList.add('solved');
+        updateStats();
+      }else{
+        inp.className='no';msg.className='msg no';msg.textContent='✗ Incorrecto. Revisa el formato FLAG{...} (sensible a mayúsculas).';
+        setTimeout(function(){inp.className=''},400);
+      }
+    };
+    var inp=document.querySelector('input[data-cid="'+cid+'"]');
+    inp.addEventListener('keydown',function(e){if(e.key==='Enter')btn.click();});
+  });
+}
+
+/* ---------- maquinas (infra) dentro de la rejilla de retos ---------- */
+var apiOK=(location.protocol==='http:'||location.protocol==='https:');
+function mtarget(r){var h=location.hostname||'IP-DEL-HOST';
+  if(r.proto==='ssh')return 'ssh ctf@'+h+' -p '+r.puerto+'  (pass: ctf)';
+  if(r.proto==='tcp')return 'nc '+h+' '+r.puerto;
+  return r.proto+'://'+h+':'+r.puerto;}
+function filesHTML(r){
+  return '<h4>Archivos (descargar / abrir)</h4><div class="files">'+
+    r.archivos.map(function(a){return '<a href="'+esc(a)+'" download><code>'+esc(a)+'</code></a>'}).join('')+'</div>';
+}
+function maqHTML(r){
+  var ctrl = apiOK
+    ? '<button class="vbtn" data-act="start" data-mid="'+r.maquina_id+'">Levantar máquina</button><button class="btn" data-act="stop" data-mid="'+r.maquina_id+'">Detener</button>'
+    : '<span class="muted">Botones: sirve el panel con <code>python3 lab/control.py</code>. Manual: <code>cd lab/machines/'+esc(r.maquina_id)+' && docker compose up -d --build</code></span>';
+  return '<h4>Máquina (infraestructura)</h4>'+
+    '<div class="method">Objetivo: <b><span data-tg="'+r.maquina_id+'">'+esc(mtarget(r))+'</span></b> · estado: <span data-st="'+r.maquina_id+'">—</span></div>'+
+    '<div class="submit" style="margin:8px 0">'+ctrl+'<span class="msg" data-log="'+r.maquina_id+'" style="align-self:center"></span></div>';
+}
+function guiaHTML(r){
+  var out='';
+  if(r.concepto){
+    out+='<h4>Concepto clave</h4><div class="method">'+esc(r.concepto)+'</div>';
+    out+='<div class="lesson"><b>Antes de tocar una herramienta:</b> explica con tus palabras qué evidencia del reto encaja con este concepto. Si no puedes explicarlo, vuelve a leer el concepto y observa de nuevo el material.</div>';
+  }
+  if(r.pasos&&r.pasos.length){
+    var titulo=(r.tipo==='maquina')?'Cómo investigar la máquina':'Cómo investigar el reto';
+    out+='<h4>'+titulo+'</h4>'+
+      '<div class="reasoning">'+
+      '<div class="step"><b>Observa</b>Identifica qué dato concreto tienes.</div>'+
+      '<div class="step"><b>Formula</b>Escribe una hipótesis antes del comando.</div>'+
+      '<div class="step"><b>Comprueba</b>Usa la técnica que pueda confirmar esa hipótesis.</div>'+
+      '<div class="step"><b>Interpreta</b>Pregunta qué cambió y qué aprendiste.</div>'+
+      '</div>'+
+      '<p class="muted" style="margin:2px 0 8px;font-size:12.5px"><b style="color:var(--fg)">Regla:</b> intenta cada paso antes de abrir el comando. El objetivo es poder explicar por qué lo ejecutaste y qué esperabas encontrar.</p>'+
+      '<ol class="learn walk">'+
+      r.pasos.map(function(p,i){
+        if(typeof p==='string') return '<li><b>Paso '+(i+1)+'.</b> '+esc(p)+'</li>';
+        var why=esc(p.why||'');
+        return '<li><b>'+esc(p.t||('Paso '+(i+1)))+'</b>'+
+               (why?'<br><span>'+why+'</span>':'')+
+               (p.cmd?'<div class="whycmd">¿Ya tienes una hipótesis? Entonces compruébala:</div><details class="cmd"><summary>💻 ver comando</summary><code>'+esc(p.cmd)+'</code></details>':'')+'</li>';
+      }).join('')+'</ol>';
+    out+='<div class="warning"><b>Checkpoint mental:</b> antes de continuar, intenta completar esta frase: "Vi <i>___</i>, por eso sospecho <i>___</i>; ejecuté <i>___</i> para comprobarlo y el resultado significa <i>___</i>".</div>';
+  }
+  return out;
+}
+function refreshStatus(){
+  if(!apiOK)return;
+  fetch('/api/machines').then(function(r){return r.json()}).then(function(list){
+    list.forEach(function(m){document.querySelectorAll('[data-st="'+m.id+'"]').forEach(function(el){
+      el.textContent=m.running?'● corriendo':'○ detenida';el.style.color=m.running?'var(--accent)':'var(--dim)';});});
+  }).catch(function(){});
+}
+function bindMachines(){
+  if(!apiOK)return;
+  document.querySelectorAll('button[data-act]').forEach(function(btn){
+    btn.onclick=function(){
+      var id=btn.getAttribute('data-mid'),act=btn.getAttribute('data-act');
+      var log=document.querySelector('[data-log="'+id+'"]');log.className='msg';
+      log.textContent=(act==='start'?'Levantando (el primer build puede tardar)...':'Deteniendo...');
+      fetch('/api/machines/'+id+'/'+act,{method:'POST'}).then(function(r){return r.json()}).then(function(d){
+        log.className='msg '+(d.ok?'ok':'no');
+        log.textContent=d.ok?(act==='start'?'✓ Arriba':'✓ Detenida.'):('✗ Error: '+(d.log||'').split('\n').slice(-3).join(' '));
+        refreshStatus();
+      }).catch(function(e){log.className='msg no';log.textContent='✗ Sin orquestador ('+e+')';});
+    };
+  });
+  refreshStatus();
+}
+
+/* ---------- prompt para un LLM externo (guía, no resuelve) ---------- */
+function llmPrompt(r){
+  var L=[];
+  L.push("Actúa como mi mentor de CTF. Tu objetivo es que YO llegue a la solución, NO dármela.");
+  L.push("");
+  L.push("REGLAS (síguelas estrictamente):");
+  L.push("- No me des nunca la flag ni el comando/exploit final completo.");
+  L.push("- Guíame por una escalera de ayuda y sube UN peldaño a la vez, esperando mi intento entre cada uno:");
+  L.push("  1) una pregunta que me haga mirar el dato clave;");
+  L.push("  2) la técnica a usar (sin el comando);");
+  L.push("  3) el comando genérico de esa técnica (no aplicado a mi caso exacto);");
+  L.push("  4) el comando aplicado a mi caso, SOLO si sigo trabado y te lo pido.");
+  L.push("- Antes de ayudarme, pídeme mi hipótesis. Hazme UNA sola pregunta a la vez.");
+  L.push("- Si te pido 'la respuesta', recuérdame mi objetivo una vez y ofréceme el siguiente peldaño; si insisto, puedes dármela y explicar el porqué.");
+  L.push("- Estoy en Kali y solo ataco mi laboratorio local. La flag tiene formato FLAG{...}; no la inventes, yo la valido en mi panel.");
+  L.push("");
+  L.push("CONTEXTO DEL RETO (úsalo para guiarme, no me lo repitas tal cual):");
+  L.push("- Reto: Día "+r.day+" · "+r.enfoque+" (dificultad "+r.nivel+"/4) — \""+r.titulo+"\"");
+  L.push("- Tipo: "+(r.tipo==='archivo'?'archivo para analizar en mi máquina':'servicio/máquina que ataco por red'));
+  if(r.tipo!=='archivo'&&r.puerto) L.push("- Objetivo de red: "+mtarget(r));
+  if(r.archivos&&r.archivos.length) L.push("- Archivos que tengo: "+r.archivos.join(', '));
+  L.push("- Descripción: "+r.brief);
+  if(r.concepto) L.push("- Concepto clave: "+r.concepto);
+  if(r.aprendes&&r.aprendes.length) L.push("- Debo aprender: "+r.aprendes.join(' / '));
+  if(r.pasos&&r.pasos.length){
+    L.push("- Pasos que debería razonar yo (no me los dictes; ayúdame a descubrirlos):");
+    r.pasos.forEach(function(p,i){
+      L.push("   "+(i+1)+". "+(typeof p==='string'?p:((p.t||'')+(p.why?" — "+p.why:""))));
+    });
+  }
+  if(r.pistas&&r.pistas.length){
+    L.push("- Pistas oficiales (DOSIFÍCAMELAS de a una, no me las sueltes todas de golpe):");
+    r.pistas.forEach(function(p,i){ L.push("   Pista "+(i+1)+": "+p); });
+  }
+  L.push("");
+  L.push("LO QUE YA INTENTÉ: <<escribe aquí qué probaste y qué observaste; si aún nada, dilo>>");
+  L.push("MI HIPÓTESIS ACTUAL: <<escribe tu idea>>");
+  L.push("");
+  L.push("Empieza haciéndome 1 sola pregunta para orientarme.");
+  return L.join("\n");
+}
+function promptHTML(r){
+  var cid=r.day+'_'+r.enfoque;
+  return '<details class="llm"><summary>🤖 Cómo preguntarle al LLM (sin que te dé la respuesta)</summary>'+
+    '<p class="muted" style="margin:6px 0;font-size:12.5px">Copia este prompt y pégalo en cualquier LLM (ChatGPT, Claude, Gemini…). Rellena «lo que ya intenté» y tu hipótesis. Te guiará con preguntas y pistas graduales, nunca con la flag.</p>'+
+    '<div class="submit" style="margin:0 0 6px"><button class="btn" data-copy="'+cid+'">📋 Copiar prompt</button><span class="msg" data-copymsg="'+cid+'" style="align-self:center"></span></div>'+
+    '<textarea class="llmbox" readonly data-llm="'+cid+'">'+esc(llmPrompt(r))+'</textarea>'+
+    '</details>';
+}
+function bindPrompts(){
+  document.querySelectorAll('button[data-copy]').forEach(function(btn){
+    btn.onclick=function(){
+      var cid=btn.getAttribute('data-copy');
+      var ta=document.querySelector('textarea[data-llm="'+cid+'"]');
+      var msg=document.querySelector('[data-copymsg="'+cid+'"]');
+      var ok=function(){msg.className='msg ok';msg.textContent='✓ copiado';setTimeout(function(){msg.textContent='';},2000);};
+      var manual=function(){try{ta.focus();ta.select();document.execCommand('copy');ok();}catch(e){msg.className='msg no';msg.textContent='selecciona el texto y copia a mano';}};
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(ta.value).then(ok).catch(manual);}else{manual();}
+    };
+  });
+}
+
+/* init */
+(function(){
+  if(!DATA.length){document.getElementById('list').innerHTML='<p class="muted">No se pudo cargar manifest.js. Abre esta página junto al archivo manifest.js.</p>';return;}
+  var sel=document.getElementById('fEnfoque');
+  [].concat.apply([],DATA.map(function(r){return r.enfoque})).filter(function(v,i,a){return a.indexOf(v)===i})
+   .forEach(function(e){var o=document.createElement('option');o.value=e;o.textContent=e;sel.appendChild(o)});
+  ['fEnfoque','fNivel','fEstado','fText'].forEach(function(id){
+    document.getElementById(id).addEventListener('input',render)});
+  document.getElementById('reset').onclick=function(){
+    if(confirm('¿Borrar todo tu progreso?')){solved={};save(solved);render();updateStats();}};
+  function finish(){ seedOnce(); render(); updateStats(); }
+  if(srvOK){
+    fetch('/api/progress').then(function(r){return r.json()}).then(function(d){
+      if(d&&d.solved&&typeof d.solved==='object'){solved=d.solved;try{localStorage.setItem(KEY,JSON.stringify(solved))}catch(e){}}
+    }).catch(function(){}).then(finish);
+  }else{
+    finish();
+  }
+})();
+</script>
+</body>
+</html>

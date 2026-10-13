@@ -1,0 +1,8 @@
+services:
+  app:
+    build: .
+    image: dockerlab/d20-web
+    container_name: lab-d20-web
+    ports:
+      - "${BIND:-0.0.0.0}:8020:5000"
+    restart: unless-stopped

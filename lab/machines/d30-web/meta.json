@@ -1,0 +1,8 @@
+{
+  "id": "d30-web",
+  "nombre": "XMLAPI",
+  "enfoque": "Web",
+  "dificultad": 4,
+  "puerto": 8030,
+  "proto": "http"
+}

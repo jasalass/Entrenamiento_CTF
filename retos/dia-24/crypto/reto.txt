@@ -1,0 +1,7 @@
+RSA con modulo pequeno.
+
+n = 10127333
+e = 17
+c = 43988
+
+La flag es FLAG{d24_crypto_<m>}.

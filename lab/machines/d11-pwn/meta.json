@@ -1,0 +1,8 @@
+{
+  "id": "d11-pwn",
+  "nombre": "Runner",
+  "enfoque": "Pwn",
+  "dificultad": 1,
+  "puerto": 8111,
+  "proto": "ssh"
+}
