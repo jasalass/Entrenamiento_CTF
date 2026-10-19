@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Prepara el host (EC2) y arranca el orquestador del lab como servicio systemd.
 # Idempotente: se puede ejecutar en cada deploy sin romper nada.
+# Soporta Amazon Linux (dnf/yum) y Debian/Ubuntu (apt-get).
 #
 # Se espera que la carpeta del lab ya este sincronizada en $LAB_HOME/roadmap
 # (lo hace el workflow con rsync). El panel queda escuchando SOLO en 127.0.0.1
@@ -14,24 +15,54 @@ LAB_DIR="${LAB_HOME}/roadmap"
 
 echo "[setup] usuario=${LAB_USER} dir=${LAB_DIR}"
 
-# --- dependencias (solo si faltan) ---------------------------------------
-need_apt=0
-command -v docker  >/dev/null 2>&1 || need_apt=1
-command -v python3 >/dev/null 2>&1 || need_apt=1
-python3 -c 'import flask' >/dev/null 2>&1 || need_apt=1
-docker compose version >/dev/null 2>&1 || need_apt=1
+# --- detectar gestor de paquetes -----------------------------------------
+if   command -v dnf     >/dev/null 2>&1; then PKG=dnf
+elif command -v yum     >/dev/null 2>&1; then PKG=yum
+elif command -v apt-get >/dev/null 2>&1; then PKG=apt
+else echo "[setup] ERROR: no encuentro dnf/yum/apt-get"; exit 1; fi
+echo "[setup] gestor de paquetes: ${PKG}"
 
-if [ "$need_apt" = "1" ]; then
-  echo "[setup] instalando dependencias..."
-  export DEBIAN_FRONTEND=noninteractive
+pkg_install() {   # pkg_install paquete...
+  case "$PKG" in
+    dnf) sudo dnf install -y "$@" ;;
+    yum) sudo yum install -y "$@" ;;
+    apt) sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "$@" ;;
+  esac
+}
+
+# --- dependencias ---------------------------------------------------------
+echo "[setup] instalando dependencias..."
+if [ "$PKG" = "apt" ]; then
   sudo apt-get update -y
-  sudo apt-get install -y docker.io docker-compose-v2 python3-flask rsync
+  pkg_install docker.io docker-compose-v2 python3-flask rsync
+else
+  # Amazon Linux: docker + python en los repos; compose y flask aparte
+  pkg_install docker python3 python3-pip rsync
 fi
 
-# docker activo y el usuario en el grupo docker (para 'docker compose' sin sudo)
+# docker activo y usuario en el grupo docker (para 'docker compose' sin sudo)
 sudo systemctl enable --now docker
 if ! id -nG "$LAB_USER" | tr ' ' '\n' | grep -qx docker; then
   sudo usermod -aG docker "$LAB_USER"
+fi
+
+# compose v2: en Amazon Linux no viene; instalar el plugin si falta
+if ! docker compose version >/dev/null 2>&1; then
+  echo "[setup] instalando plugin docker compose v2..."
+  COMPOSE_VER="v2.29.7"
+  ARCH="$(uname -m)"   # x86_64 / aarch64
+  sudo mkdir -p /usr/libexec/docker/cli-plugins
+  sudo curl -fsSL \
+    "https://github.com/docker/compose/releases/download/${COMPOSE_VER}/docker-compose-linux-${ARCH}" \
+    -o /usr/libexec/docker/cli-plugins/docker-compose
+  sudo chmod +x /usr/libexec/docker/cli-plugins/docker-compose
+fi
+
+# flask: si el import falla (Amazon Linux), instalar con pip
+if ! python3 -c 'import flask' >/dev/null 2>&1; then
+  echo "[setup] instalando Flask con pip..."
+  sudo python3 -m pip install --upgrade flask \
+    || sudo python3 -m pip install --break-system-packages --upgrade flask
 fi
 
 # --- servicio systemd del orquestador ------------------------------------
