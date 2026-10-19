@@ -1,0 +1,52 @@
+name: Deploy CTF lab a EC2
+
+# Despliega el lab en tu EC2 por SSH: sincroniza roadmap/ y arranca el
+# orquestador como servicio systemd (instala Docker + Flask si faltan).
+#
+# Secretos requeridos (Settings -> Secrets and variables -> Actions):
+#   EC2_HOST     direccion de la maquina (IP publica o DNS de la EC2)
+#   EC2_USER     usuario SSH (ej. 'ubuntu' en Ubuntu, 'admin' en Debian)
+#   EC2_SSH_KEY  clave PRIVADA SSH con acceso a esa maquina (contenido del .pem)
+
+on:
+  workflow_dispatch:        # arranque manual desde la pestana Actions
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: deploy-lab
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar clave SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Sincronizar el lab al host
+        run: |
+          rsync -az --delete \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude 'scripts/' \
+            --exclude 'progress.json' \
+            --exclude '__pycache__/' \
+            -e "ssh -i ~/.ssh/id_deploy" \
+            ./ \
+            "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/roadmap/"
+
+      - name: Instalar dependencias y arrancar el lab
+        run: |
+          scp -i ~/.ssh/id_deploy scripts/setup-lab.sh \
+            "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/setup-lab.sh"
+          ssh -i ~/.ssh/id_deploy \
+            "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" \
+            'bash ~/setup-lab.sh'

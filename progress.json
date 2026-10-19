@@ -1,3 +1,11 @@
 {
- "solved": {}
+ "solved": {
+  "1_Crypto": true,
+  "1_Encoding": true,
+  "1_Stego": true,
+  "1_Forensics": true,
+  "1_OSINT": true,
+  "1_Reversing": true,
+  "1_Web": true
+ }
 }
