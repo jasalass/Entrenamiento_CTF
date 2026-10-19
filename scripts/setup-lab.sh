@@ -12,8 +12,12 @@ set -euo pipefail
 LAB_USER="$(id -un)"
 LAB_HOME="$(eval echo "~${LAB_USER}")"
 LAB_DIR="${LAB_HOME}/roadmap"
+# Interfaz donde escucha el panel. 0.0.0.0 = accesible por red (lab personal:
+# restringe el puerto 8000 a tu IP en el Security Group). 127.0.0.1 = solo por
+# tunel SSH. Override: LAB_BIND=127.0.0.1 bash setup-lab.sh
+LAB_BIND="${LAB_BIND:-0.0.0.0}"
 
-echo "[setup] usuario=${LAB_USER} dir=${LAB_DIR}"
+echo "[setup] usuario=${LAB_USER} dir=${LAB_DIR} bind=${LAB_BIND}"
 
 # --- detectar gestor de paquetes -----------------------------------------
 if   command -v dnf     >/dev/null 2>&1; then PKG=dnf
@@ -76,7 +80,7 @@ Requires=docker.service
 [Service]
 User=${LAB_USER}
 WorkingDirectory=${LAB_DIR}
-Environment=LAB_BIND=127.0.0.1
+Environment=LAB_BIND=${LAB_BIND}
 Environment=LAB_PORT=8000
 ExecStart=/usr/bin/python3 ${LAB_DIR}/lab/control.py
 Restart=on-failure
